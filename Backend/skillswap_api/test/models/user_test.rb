@@ -10,6 +10,7 @@ class UserTest < ActiveSupport::TestCase
     }.merge(overrides))
   end
 
+
   test "user is valid with valid attributes" do
     user = valid_user
     assert user.valid?
@@ -47,5 +48,12 @@ class UserTest < ActiveSupport::TestCase
     duplicate = valid_user
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:username], "has already been taken"
+  end
+
+  test "email must be unique" do
+    valid_user.save!
+    duplicate = valid_user(username: "otheruser")
+    assert_not duplicate.valid?
+    assert_includes duplicate.errors[:email], "has already been taken"
   end
 end
