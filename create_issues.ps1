@@ -1,94 +1,240 @@
-Write-Host "Creating milestones..."
+$issues = @(
+  @{
+    title = "Issue 5: Create User model with TDD"
+    body  = @"
+Goal:
+Introduce the core User model using MVC and TDD.
 
-$repo = gh repo view --json nameWithOwner -q .nameWithOwner
+Backend:
+- User model with email and password_digest
+- has_secure_password
+- Email uniqueness validation
 
-$milestones = @(
-  "Sprint 1 - Setup and Core Domain MVC",
-  "Sprint 2 - Authentication and Authorization",
-  "Sprint 3 - Matching System Business Logic",
-  "Sprint 4 - UX Testing and Final Polish"
+Tests:
+- Valid user
+- Missing email
+- Duplicate email
+
+Acceptance Criteria:
+- rails test passes
+- No controller yet
+"@
+  },
+
+  @{
+    title = "Issue 6: Create Skill model (offer and request)"
+    body  = @"
+Goal:
+Model skills that users can offer or request.
+
+Backend:
+- Skill model
+- Fields: title, description, kind, user_id
+- belongs_to user
+
+Rules:
+- kind must be offer or request
+
+Tests:
+- Validations
+- Associations
+"@
+  },
+
+  @{
+    title = "Issue 7: Skills controller read-only API"
+    body  = @"
+Goal:
+Expose public skills via API.
+
+Endpoints:
+- GET /skills
+- GET /skills/:id
+
+Tests:
+- Request specs
+- Status codes 200 and 404
+
+Acceptance Criteria:
+- JSON only
+- No authentication
+"@
+  },
+
+  @{
+    title = "Issue 8: User registration endpoint"
+    body  = @"
+Goal:
+Allow users to register.
+
+Endpoint:
+- POST /users
+
+Input:
+- email
+- password
+- password_confirmation
+
+Tests:
+- Successful registration
+- Invalid params rejected
+"@
+  },
+
+  @{
+    title = "Issue 9: Login and JWT authentication"
+    body  = @"
+Goal:
+Authenticate users and issue JWT tokens.
+
+Endpoint:
+- POST /login
+
+Behavior:
+- Return JWT on success
+- Return 401 on failure
+
+Tests:
+- Valid login
+- Invalid login
+"@
+  },
+
+  @{
+    title = "Issue 10: Authenticated skill creation"
+    body  = @"
+Goal:
+Only logged-in users can create skills.
+
+Endpoint:
+- POST /skills
+
+Rules:
+- JWT required
+- Skill linked to current user
+
+Tests:
+- Authenticated success
+- Unauthenticated rejected
+"@
+  },
+
+  @{
+    title = "Issue 11: Skill ownership authorization"
+    body  = @"
+Goal:
+Only skill owners can update or delete skills.
+
+Endpoints:
+- PUT /skills/:id
+- DELETE /skills/:id
+
+Rules:
+- Owner only
+- Return 403 if unauthorized
+
+Tests:
+- Owner allowed
+- Non-owner blocked
+"@
+  },
+
+  @{
+    title = "Issue 12: Match model and business rules"
+    body  = @"
+Goal:
+Represent a skill swap between users.
+
+Backend:
+- Match model
+- requester_id
+- provider_id
+- skill_id
+- status
+
+Rules:
+- Cannot match own skill
+- Default status is pending
+
+Tests:
+- Business rule enforcement
+"@
+  },
+
+  @{
+    title = "Issue 13: Match creation service object"
+    body  = @"
+Goal:
+Move match logic out of controllers.
+
+Backend:
+- Matches::CreateService
+- Validates rules
+- Creates match
+
+Tests:
+- Service-level tests
+"@
+  },
+
+  @{
+    title = "Issue 14: React fetch public skills"
+    body  = @"
+Goal:
+Frontend displays list of skills.
+
+Frontend:
+- Fetch GET /skills
+- Loading and error states
+- Display list
+
+Acceptance Criteria:
+- Rails is source of truth
+"@
+  },
+
+  @{
+    title = "Issue 15: React authentication flow"
+    body  = @"
+Goal:
+Allow users to log in.
+
+Frontend:
+- Login form
+- Store JWT
+- Attach token to requests
+"@
+  },
+
+  @{
+    title = "Issue 16: React create skill form"
+    body  = @"
+Goal:
+Authenticated users can create skills.
+
+Frontend:
+- Skill form
+- POST /skills
+- Show validation errors
+"@
+  },
+
+  @{
+    title = "Issue 17: Final cleanup and documentation"
+    body  = @"
+Goal:
+Stabilize and document the application.
+
+Tasks:
+- Clean unused code
+- Ensure tests pass
+- Update README
+"@
+  }
 )
 
-foreach ($m in $milestones) {
-  gh api repos/$repo/milestones -f title="$m" 2>$null
-}
-
-function New-Issue {
-  param ($title, $body, $milestoneTitle)
+foreach ($issue in $issues) {
   gh issue create `
-    --title "$title" `
-    --body "$body" `
-    --milestone "$milestoneTitle"
+    --title $issue.title `
+    --body $issue.body
 }
-
-Write-Host "Creating issues..."
-
-# ======================
-# Sprint 1
-# ======================
-
-New-Issue "Initialize monorepo structure" `
-"Create frontend (React) and backend (Rails API) folders." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-New-Issue "Setup Rails API with PostgreSQL" `
-"Rails API setup with PostgreSQL. Smoke test." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-New-Issue "Setup React frontend view layer" `
-"React app setup. View layer only." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-New-Issue "Configure CORS" `
-"Allow frontend to access backend API." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-New-Issue "User model validations TDD" `
-"Model tests first. Validations and associations." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-New-Issue "Skill model offer request TDD" `
-"Skill belongs to user. Offer or request." `
-"Sprint 1 - Setup and Core Domain MVC"
-
-# ======================
-# Sprint 2
-# ======================
-
-New-Issue "User authentication model TDD" `
-"Secure password handling." `
-"Sprint 2 - Authentication and Authorization"
-
-New-Issue "JWT login endpoint" `
-"Generate JWT token on login." `
-"Sprint 2 - Authentication and Authorization"
-
-New-Issue "Protect endpoints with JWT" `
-"Require authentication for protected routes." `
-"Sprint 2 - Authentication and Authorization"
-
-# ======================
-# Sprint 3
-# ======================
-
-New-Issue "Match model business rules TDD" `
-"Offer to request matching only." `
-"Sprint 3 - Matching System Business Logic"
-
-New-Issue "Match service objects" `
-"Encapsulate matching workflows." `
-"Sprint 3 - Matching System Business Logic"
-
-# ======================
-# Sprint 4
-# ======================
-
-New-Issue "React UX improvements" `
-"Loading states and error handling." `
-"Sprint 4 - UX Testing and Final Polish"
-
-New-Issue "Final integration tests" `
-"End-to-end happy path." `
-"Sprint 4 - UX Testing and Final Polish"
-
-Write-Host "All milestones and issues created successfully!"
