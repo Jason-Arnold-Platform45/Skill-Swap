@@ -11,5 +11,12 @@ module ActiveSupport
     fixtures :all
 
     # Add more helper methods to be used by all tests here...
+    # token = Knock::AuthToken.new(payload: { sub: user.id }).token
+    def auth_headers_for(user)
+      token = Knock::AuthToken.new(payload: { sub: user.id }).token
+      {
+        "Authorization" => "Bearer #{token}"
+      }
+    end
   end
 end
