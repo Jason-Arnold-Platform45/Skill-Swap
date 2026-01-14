@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  post "/login", to: "auth#create"
+
   resources :users
   resources :skills, only: [:index, :show]
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
