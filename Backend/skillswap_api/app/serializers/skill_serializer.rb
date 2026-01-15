@@ -9,7 +9,7 @@ class SkillSerializer
       title: @skill.title,
       description: @skill.description,
       skill_type: @skill.skill_type,
-      created_at: @skill.created_at,
+      taken: @skill.taken,
       user: {
         id: @skill.user.id,
         username: @skill.user.username

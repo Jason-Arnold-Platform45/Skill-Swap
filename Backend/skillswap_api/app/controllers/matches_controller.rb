@@ -17,7 +17,8 @@ class MatchesController < ApplicationController
         status: match.status,
         skill: {
           id: match.skill.id,
-          title: match.skill.title
+          title: match.skill.title,
+          description: match.skill.description
         },
         requester: {
           id: match.requester.id,
@@ -31,6 +32,7 @@ class MatchesController < ApplicationController
       }
     }
   end
+
 
   # POST /matches
   def create

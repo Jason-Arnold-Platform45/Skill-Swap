@@ -3,16 +3,12 @@ class SkillsController < ApplicationController
   before_action :set_skill, only: [:show, :update, :destroy]
 
   def index
-    skills = Skill.includes(:user).where(deleted: nil)
+    skills = Skill.includes(:user, :matches).where(deleted: nil)
     render json: skills.map { |skill| SkillSerializer.new(skill).as_json }
   end
 
   def show
-    if @skill&.deleted.nil?
-      render json: SkillSerializer.new(@skill).as_json
-    else
-      head :not_found
-    end
+    render json: SkillSerializer.new(@skill).as_json
   end
 
   def create
@@ -41,7 +37,7 @@ class SkillsController < ApplicationController
     return if performed?
 
     @skill.destroy
-    render json: { message: "Skill deleted successfully" }, status: :no_content
+    head :no_content
   end
 
   private
