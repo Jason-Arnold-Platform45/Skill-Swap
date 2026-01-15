@@ -20,22 +20,33 @@ body {
 .app-header {
   background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
   color: white;
-  padding: 60px 20px;
-  text-align: center;
+  padding: 40px 20px;
   box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
 }
 
-.app-header h1 {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
 }
 
-.app-header p {
+.header-content h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.header-content p {
   font-size: 1.1rem;
   opacity: 0.95;
   font-weight: 300;
+  text-align: center;
 }
 
 main {
@@ -53,6 +64,7 @@ main {
   color: white;
   font-weight: 600;
   letter-spacing: -0.5px;
+  text-align: center;
 }
 
 .skills-grid {
@@ -176,6 +188,68 @@ main {
   cursor: pointer;
   font-size: 1rem;
   transition: background 0.2s;
+}
+
+.signup-header-btn {
+  padding: 12px 30px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.signup-header-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.logout-btn {
+  padding: 12px 30px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
 }
 
 .error-state button:hover {

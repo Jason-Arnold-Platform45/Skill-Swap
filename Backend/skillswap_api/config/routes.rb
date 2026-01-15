@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  post "/signup", to: "auth#create"
+  post "/signup", to: "auth#signup"
+  post "/login", to: "auth#create"
 
   resources :users
   resources :skills, only: [:index, :show, :create, :update, :destroy]
