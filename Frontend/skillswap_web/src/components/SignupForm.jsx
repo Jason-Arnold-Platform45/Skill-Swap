@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './SignupForm.css';
+import '../assets/SignupForm.css';
 
 export default function SignupForm({ onLoginSuccess, setCurrentPage }) {
   const [formData, setFormData] = useState({

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import SkillsList from "./components/SkillsList";
 import SignupForm from "./components/SignupForm";
 import LoginForm from "./components/LoginForm";
+import MatchesList from "./components/MatchesList";
+
 import "./App.css";
 
 function App() {
@@ -41,7 +43,7 @@ function App() {
 
   return (
     <div className="App">
-      {isLoggedIn && currentPage === "home" ? (
+      {isLoggedIn ? (
         <>
           <header className="app-header">
             <div className="header-content">
@@ -49,19 +51,36 @@ function App() {
                 <h1>Skill Swap</h1>
                 <p>Exchange skills with your community</p>
               </div>
+
+              <div className="nav-bar">
+                <button onClick={() => setCurrentPage("home")}>
+                  Skills
+                </button>
+                <button onClick={() => setCurrentPage("matches")}>
+                  Matches
+                </button>
+              </div>
               <button className="logout-btn" onClick={handleLogout}>
-                Sign Out
-              </button>
+                  Sign Out
+                </button>
             </div>
           </header>
+
           <main>
-            <SkillsList />
+            {currentPage === "home" && <SkillsList />}
+            {currentPage === "matches" && <MatchesList user={user} />}
           </main>
         </>
       ) : currentPage === "signup" ? (
-        <SignupForm onLoginSuccess={handleLoginSuccess} setCurrentPage={setCurrentPage} />
+        <SignupForm
+          onLoginSuccess={handleLoginSuccess}
+          setCurrentPage={setCurrentPage}
+        />
       ) : (
-        <LoginForm onLoginSuccess={handleLoginSuccess} setCurrentPage={setCurrentPage} />
+        <LoginForm
+          onLoginSuccess={handleLoginSuccess}
+          setCurrentPage={setCurrentPage}
+        />
       )}
     </div>
   );

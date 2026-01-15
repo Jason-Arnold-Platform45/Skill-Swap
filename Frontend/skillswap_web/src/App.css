@@ -433,3 +433,9 @@ main {
 .error-state button:hover {
   background: #764ba2;
 }
+
+.nav-bar {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
