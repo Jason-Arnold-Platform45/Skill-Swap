@@ -1,5 +1,6 @@
 class SkillsController < ApplicationController
   skip_before_action :authenticate_user, only: [:index, :show]
+  before_action :set_skill, only: [:show, :update, :destroy]
 
   def index
     skills = Skill.where(deleted: nil)
@@ -7,10 +8,8 @@ class SkillsController < ApplicationController
   end
 
   def show
-    skill = Skill.find_by(id: params[:id], deleted: nil)
-
-    if skill
-      render json: skill
+    if @skill&.deleted.nil?
+      render json: @skill
     else
       head :not_found
     end
@@ -26,7 +25,35 @@ class SkillsController < ApplicationController
     end
   end
 
+  def update
+    authorize_skill_owner!
+    return if performed?
+    
+    if @skill.update(skill_params)
+      render json: @skill, status: :ok
+    else
+      render json: { errors: @skill.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    authorize_skill_owner!
+    return if performed?
+    
+    @skill.destroy
+    render json: { message: "Skill deleted successfully" }, status: :no_content
+  end
+
   private
+
+  def set_skill
+    @skill = Skill.find_by(id: params[:id])
+    head :not_found unless @skill
+  end
+
+  def authorize_skill_owner!
+    render json: { error: "Unauthorized" }, status: :forbidden unless @skill.user_id == current_user.id
+  end
 
   def skill_params
     params.require(:skill).permit(:title, :description, :skill_type)

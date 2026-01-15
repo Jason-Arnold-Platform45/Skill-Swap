@@ -10,8 +10,8 @@ class AuthControllerTest < ActionDispatch::IntegrationTest
   )
 end
 
-  test "login succeeds with valid credentials" do
-    post "/login", params: {
+  test "signup succeeds with valid credentials" do
+    post "/signup", params: {
       auth: {
         email: @user.email,
         password: "Password123"
@@ -24,8 +24,8 @@ end
     assert json["token"].present?, "JWT token should be returned"
   end
 
-  test "login fails with invalid credentials" do
-    post "/login", params: {
+  test "signup fails with invalid credentials" do
+    post "/signup", params: {
       auth: {
         email: @user.email,
         password: "WrongPassword"
