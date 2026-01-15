@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  requester: one
+  provider: one
+  skill: one
+  status: MyString
+
+two:
+  requester: two
+  provider: two
+  skill: two
+  status: MyString

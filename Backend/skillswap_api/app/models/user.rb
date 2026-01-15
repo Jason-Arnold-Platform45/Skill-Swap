@@ -1,5 +1,8 @@
 class User < ApplicationRecord
   has_many :skills, dependent: :destroy
+  has_many :requested_matches, class_name: "Match", foreign_key: "requester_id", dependent: :destroy
+  has_many :provided_matches, class_name: "Match", foreign_key: "provider_id", dependent: :destroy
+  
   has_secure_password
 
   validates :username,
