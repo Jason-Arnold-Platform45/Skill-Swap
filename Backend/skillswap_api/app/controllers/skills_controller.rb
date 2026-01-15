@@ -3,13 +3,13 @@ class SkillsController < ApplicationController
   before_action :set_skill, only: [:show, :update, :destroy]
 
   def index
-    skills = Skill.where(deleted: nil)
-    render json: skills
+    skills = Skill.includes(:user).where(deleted: nil)
+    render json: skills.map { |skill| SkillSerializer.new(skill).as_json }
   end
 
   def show
     if @skill&.deleted.nil?
-      render json: @skill
+      render json: SkillSerializer.new(@skill).as_json
     else
       head :not_found
     end
@@ -19,7 +19,7 @@ class SkillsController < ApplicationController
     skill = current_user.skills.build(skill_params)
 
     if skill.save
-      render json: skill, status: :created
+      render json: SkillSerializer.new(skill).as_json, status: :created
     else
       render json: { errors: skill.errors.full_messages }, status: :unprocessable_entity
     end
@@ -28,9 +28,9 @@ class SkillsController < ApplicationController
   def update
     authorize_skill_owner!
     return if performed?
-    
+
     if @skill.update(skill_params)
-      render json: @skill, status: :ok
+      render json: SkillSerializer.new(@skill).as_json, status: :ok
     else
       render json: { errors: @skill.errors.full_messages }, status: :unprocessable_entity
     end
@@ -39,7 +39,7 @@ class SkillsController < ApplicationController
   def destroy
     authorize_skill_owner!
     return if performed?
-    
+
     @skill.destroy
     render json: { message: "Skill deleted successfully" }, status: :no_content
   end
