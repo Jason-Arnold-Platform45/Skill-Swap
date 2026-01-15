@@ -1,48 +1,51 @@
 class MatchesController < ApplicationController
-  before_action :authenticate_user
   before_action :set_match, only: [:update, :destroy]
 
+  # POST /matches
   def create
-    skill = Skill.find(params[:skill_id])
-    service = Matches::CreateService.new(requester: current_user, skill: skill)
-    match = service.call
+    skill = Skill.find(params.require(:match)[:skill_id])
 
-    render json: match, status: :created
-  rescue Matches::CreateService::CannotMatchOwnSkillError => e
-    render json: { error: e.message }, status: :unprocessable_entity
-  rescue Matches::CreateService::SkillNotFoundError => e
-    render json: { error: e.message }, status: :not_found
-  rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+    match = Match.new(
+      skill: skill,
+      requester: current_user,
+      provider: skill.user,
+      status: "pending"
+    )
+
+    if match.save
+      render json: match, status: :created
+    else
+      render json: { errors: match.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
+  # PATCH /matches/:id
   def update
-    service = Matches::UpdateService.new(match: @match, user: current_user, status: match_params[:status])
-    match = service.call
+    unless @match.provider == current_user
+      return render json: { error: "Not authorized" }, status: :unauthorized
+    end
 
-    render json: match, status: :ok
-  rescue Matches::UpdateService::UnauthorizedError => e
-    render json: { error: e.message }, status: :forbidden
-  rescue Matches::UpdateService::InvalidStatusError => e
-    render json: { error: e.message }, status: :unprocessable_entity
-  rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+    if @match.update(match_params)
+      render json: @match, status: :ok
+    else
+      render json: { errors: @match.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
+  # DELETE /matches/:id
   def destroy
-    service = Matches::DestroyService.new(match: @match, user: current_user)
-    service.call
+    unless [@match.requester, @match.provider].include?(current_user)
+      return render json: { error: "Not authorized" }, status: :unauthorized
+    end
 
-    render json: { message: "Match deleted successfully" }, status: :no_content
-  rescue Matches::DestroyService::UnauthorizedError => e
-    render json: { error: e.message }, status: :forbidden
+    @match.destroy
+    render json: { message: "Match cancelled" }, status: :ok
   end
 
   private
 
   def set_match
-    @match = Match.find_by(id: params[:id])
-    head :not_found unless @match
+    @match = Match.find(params[:id])
   end
 
   def match_params

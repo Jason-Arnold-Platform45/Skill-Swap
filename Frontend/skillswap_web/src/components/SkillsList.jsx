@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { fetchSkills } from "../services/skillsApi";
-import { SkillType } from "../types/index";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
 
@@ -9,6 +8,8 @@ export default function SkillsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSkill, setSelectedSkill] = useState(null);
+
+  const TOKEN_KEY = "authToken"; // must match login
 
   useEffect(() => {
     const loadSkills = async () => {
@@ -29,33 +30,34 @@ export default function SkillsList() {
 
   const handleRequestMatch = async (skillId) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3000/matches', {
-        method: 'POST',
+      const token = localStorage.getItem(TOKEN_KEY);
+
+      if (!token) {
+        alert("You must be logged in");
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/matches", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          match: {
-            skill_id: skillId
-          }
+          match: { skill_id: skillId }
         })
       });
 
-      if (response.ok) {
-        alert('Match request sent successfully!');
-        setSelectedSkill(null);
-      } else {
-        alert('Failed to request match');
+      if (!response.ok) {
+        throw new Error("Unauthorized");
       }
-    } catch (err) {
-      alert('Error: ' + err.message);
-    }
-  };
 
-  const handleViewDetails = (skill) => {
-    setSelectedSkill(skill);
+      alert("Match request sent successfully!");
+      setSelectedSkill(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   if (loading) return <LoadingState />;
@@ -64,31 +66,24 @@ export default function SkillsList() {
   return (
     <div className="skills-list">
       <h1>Available Skills</h1>
+
       <div className="skills-grid">
         {skills.map((skill) => (
           <div key={skill.id} className="skill-card">
             <h2>{skill.title}</h2>
             <p>{skill.description}</p>
             <span className="skill-type">{skill.skill_type}</span>
+
             <div className="skill-card-actions">
-              {skill.skill_type === 'offer' ? (
-                <button 
-                  className="action-btn request-btn"
-                  onClick={() => handleRequestMatch(skill.id)}
-                >
-                  Request This Skill
-                </button>
-              ) : (
-                <button 
-                  className="action-btn offer-btn"
-                  onClick={() => handleRequestMatch(skill.id)}
-                >
-                  I Can Help
-                </button>
-              )}
-              <button 
+              <button onClick={() => handleRequestMatch(skill.id)}>
+                {skill.skill_type === "offer"
+                  ? "Request Help"
+                  : "Offer Help"}
+              </button>
+
+              <button
                 className="action-btn details-btn"
-                onClick={() => handleViewDetails(skill)}
+                onClick={() => setSelectedSkill(skill)}
               >
                 View Details
               </button>
@@ -99,22 +94,42 @@ export default function SkillsList() {
 
       {selectedSkill && (
         <div className="modal-overlay" onClick={() => setSelectedSkill(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedSkill(null)}>×</button>
-            <h2>{selectedSkill.title}</h2>
-            <p className="modal-description">{selectedSkill.description}</p>
-            <div className="modal-details">
-              <p><strong>Type:</strong> {selectedSkill.skill_type === 'offer' ? 'Offer' : 'Request'}</p>
-              <p><strong>User:</strong> {selectedSkill.user?.username}</p>
-            </div>
-            <button 
-              className="modal-action-btn"
-              onClick={() => {
-                handleRequestMatch(selectedSkill.id);
-                setSelectedSkill(null);
-              }}
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setSelectedSkill(null)}
             >
-              {selectedSkill.skill_type === 'offer' ? 'Request This Skill' : 'I Can Help'}
+              ×
+            </button>
+
+            <h2>{selectedSkill.title}</h2>
+            <p className="modal-description">
+              {selectedSkill.description}
+            </p>
+
+            <div className="modal-details">
+              <p>
+                <strong>Type:</strong>{" "}
+                {selectedSkill.skill_type === "offer"
+                  ? "Offer"
+                  : "Request"}
+              </p>
+              <p>
+                <strong>User:</strong>{" "}
+                {selectedSkill.user?.username}
+              </p>
+            </div>
+
+            <button
+              className="modal-action-btn"
+              onClick={() => handleRequestMatch(selectedSkill.id)}
+            >
+              {selectedSkill.skill_type === "offer"
+                ? "Request This Skill"
+                : "I Can Help"}
             </button>
           </div>
         </div>
