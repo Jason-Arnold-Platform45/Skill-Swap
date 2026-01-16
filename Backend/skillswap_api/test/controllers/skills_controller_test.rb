@@ -5,7 +5,7 @@ class SkillsControllerTest < ActionDispatch::IntegrationTest
     @user  = users(:one)
     @other_user = users(:two)
     @skill = skills(:one)
-    @skill.update!(user_id: @user.id)
+    @skill.update!(user_id: @user.id, deleted: nil)
   end
 
   test "GET /skills returns 200 and JSON" do
@@ -45,13 +45,8 @@ class SkillsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /skills returns 401 when unauthenticated" do
-    skill_params = {
-      title: "Unauthorized skill",
-      description: "Should fail",
-      skill_type: "offer"
-    }
-
-    post "/skills", params: { skill: skill_params }
+    post "/skills",
+         params: { skill: { title: "Fail", description: "Fail", skill_type: "offer" } }
 
     assert_response :unauthorized
   end
@@ -67,16 +62,16 @@ class SkillsControllerTest < ActionDispatch::IntegrationTest
 
   test "PUT /skills/:id returns 403 when non-owner" do
     put "/skills/#{@skill.id}",
-        params: { skill: { title: "Updated Ruby" } },
+        params: { skill: { title: "Hacked" } },
         headers: auth_headers_for(@other_user)
 
     assert_response :forbidden
-    assert_equal @skill.title, @skill.reload.title
+    assert_not_equal "Hacked", @skill.reload.title
   end
 
   test "PUT /skills/:id returns 401 when unauthenticated" do
     put "/skills/#{@skill.id}",
-        params: { skill: { title: "Updated Ruby" } }
+        params: { skill: { title: "Fail" } }
 
     assert_response :unauthorized
   end

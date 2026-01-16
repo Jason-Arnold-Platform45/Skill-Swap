@@ -3,19 +3,31 @@ class SkillsController < ApplicationController
   before_action :set_skill, only: [:show, :update, :destroy]
 
   def index
-    skills = Skill.includes(:user, :matches).where(deleted: nil)
-    render json: skills.map { |skill| SkillSerializer.new(skill).as_json }
+    skills = Skill
+      .includes(:user)
+      .where(deleted: nil)
+
+    render json: SkillSerializer
+      .new(skills, include: [:user])
+      .serializable_hash,
+      status: :ok
   end
 
   def show
-    render json: SkillSerializer.new(@skill).as_json
+    render json: SkillSerializer
+      .new(@skill, include: [:user])
+      .serializable_hash,
+      status: :ok
   end
 
   def create
     skill = current_user.skills.build(skill_params)
 
     if skill.save
-      render json: SkillSerializer.new(skill).as_json, status: :created
+      render json: SkillSerializer
+        .new(skill, include: [:user])
+        .serializable_hash,
+        status: :created
     else
       render json: { errors: skill.errors.full_messages }, status: :unprocessable_entity
     end
@@ -26,7 +38,10 @@ class SkillsController < ApplicationController
     return if performed?
 
     if @skill.update(skill_params)
-      render json: SkillSerializer.new(@skill).as_json, status: :ok
+      render json: SkillSerializer
+        .new(@skill, include: [:user])
+        .serializable_hash,
+        status: :ok
     else
       render json: { errors: @skill.errors.full_messages }, status: :unprocessable_entity
     end
@@ -43,12 +58,15 @@ class SkillsController < ApplicationController
   private
 
   def set_skill
-    @skill = Skill.find_by(id: params[:id])
+    @skill = Skill.find_by(id: params[:id], deleted: nil)
     head :not_found unless @skill
   end
 
+
   def authorize_skill_owner!
-    render json: { error: "Unauthorized" }, status: :forbidden unless @skill.user_id == current_user.id
+    return if @skill.user_id == current_user.id
+
+    render json: { error: "Unauthorized" }, status: :forbidden
   end
 
   def skill_params

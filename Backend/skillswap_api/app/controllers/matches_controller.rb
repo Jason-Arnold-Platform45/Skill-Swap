@@ -4,55 +4,44 @@ class MatchesController < ApplicationController
 
   # GET /matches
   def index
-    matches = Match
-      .includes(:skill, :requester, :provider)
-      .where(
-        "requester_id = :user_id OR provider_id = :user_id",
-        user_id: current_user.id
-      )
+    matches = Match.for_user(current_user)
 
-    render json: matches.map { |match|
-      {
-        id: match.id,
-        status: match.status,
-        skill: {
-          id: match.skill.id,
-          title: match.skill.title,
-          description: match.skill.description
-        },
-        requester: {
-          id: match.requester.id,
-          username: match.requester.username
-        },
-        provider: {
-          id: match.provider.id,
-          username: match.provider.username
-        },
-        created_at: match.created_at
-      }
-    }
+    render json: MatchSerializer
+      .new(matches, include: [:skill, :requester, :provider])
+      .serializable_hash,
+      status: :ok
   end
-
 
   # POST /matches
   def create
-    skill = Skill.find(params.require(:match).permit(:skill_id)[:skill_id])
+    skill = Skill.find(match_create_params[:skill_id])
 
     if skill.user == current_user
-      return render json: { error: "You cannot request your own skill" }, status: :unprocessable_entity
+      return render json: { error: "You cannot request your own skill" },
+                    status: :unprocessable_entity
     end
 
-    match = Match.new(
-      skill: skill,
+    match = Match.find_or_initialize_by(
       requester: current_user,
-      provider: skill.user,
-      status: "pending"
+      skill: skill
     )
 
+    if match.persisted?
+      return render json: { error: "You already requested this skill" },
+                    status: :unprocessable_entity
+    end
+
+    match.provider = skill.user
+    match.status = "pending"
+
     if match.save
-      render json: match, status: :created
+      render json: MatchSerializer
+        .new(match, include: [:skill, :requester, :provider])
+        .serializable_hash,
+        status: :created
     else
-      render json: { errors: match.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: match.errors.full_messages },
+            status: :unprocessable_entity
     end
   end
 
@@ -67,7 +56,10 @@ class MatchesController < ApplicationController
     end
 
     if @match.update(match_params)
-      render json: @match, status: :ok
+      render json: MatchSerializer
+        .new(@match, include: [:skill, :requester, :provider])
+        .serializable_hash,
+        status: :ok
     else
       render json: { errors: @match.errors.full_messages }, status: :unprocessable_entity
     end
@@ -91,5 +83,9 @@ class MatchesController < ApplicationController
 
   def match_params
     params.require(:match).permit(:status)
+  end
+
+  def match_create_params
+    params.require(:match).permit(:skill_id)
   end
 end

@@ -1,19 +1,9 @@
 class SkillSerializer
-  def initialize(skill)
-    @skill = skill
-  end
+  include JSONAPI::Serializer
 
-  def as_json(*)
-    {
-      id: @skill.id,
-      title: @skill.title,
-      description: @skill.description,
-      skill_type: @skill.skill_type,
-      taken: @skill.taken,
-      user: {
-        id: @skill.user.id,
-        username: @skill.user.username
-      }
-    }
-  end
+  set_type :skill
+
+  attributes :title, :description, :skill_type, :taken
+
+  belongs_to :user
 end
