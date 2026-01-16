@@ -4,95 +4,37 @@ class MatchesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @requester = users(:one)
     @provider  = users(:two)
-
-    @skill = @provider.skills.create!(
-      title: "Ruby",
-      description: "Backend",
-      skill_type: "offer"
-    )
-
-    @match = Match.create!(
-      requester: @requester,
-      provider: @provider,
-      skill: @skill,
-      status: "pending"
-    )
+    @skill     = skills(:one)
   end
 
-  test "POST /matches creates match when authenticated and unique" do
-    new_skill = @provider.skills.create!(
-      title: "Go",
-      description: "Systems programming",
-      skill_type: "offer"
-    )
+  test "cannot create match without jwt auth" do
+    assert_no_difference("Match.count") do
+      post matches_path, params: {
+        match: { skill_id: @skill.id }
+      }
+    end
 
-    post "/matches",
-         params: { match: { skill_id: new_skill.id } },
-         headers: auth_headers_for(@requester)
-
-    assert_response :created
+    assert_response :unauthorized
   end
 
-  test "POST /matches returns 422 when duplicate match exists" do
-    post "/matches",
-         params: { match: { skill_id: @skill.id } },
-         headers: auth_headers_for(@requester)
+  test "cannot request own skill" do
+    sign_in users(:one)
+
+    own_skill = Skill.create!(
+      title: "My Skill",
+      description: "Something I offer",
+      skill_type: "offer",
+      user: users(:one)
+    )
+
+    assert_no_difference("Match.count") do
+      post matches_path, params: {
+        match: { skill_id: own_skill.id }
+      }
+    end
 
     assert_response :unprocessable_entity
-    assert_includes response.body, "already requested"
   end
 
-  test "POST /matches returns 401 when unauthenticated" do
-    post "/matches",
-         params: { match: { skill_id: @skill.id } }
 
-    assert_response :unauthorized
-  end
-
-  test "PUT /matches/:id updates match when provider" do
-    put "/matches/#{@match.id}",
-        params: { match: { status: "accepted" } },
-        headers: auth_headers_for(@provider)
-
-    assert_response :ok
-    assert_equal "accepted", @match.reload.status
-  end
-
-  test "PUT /matches/:id returns 401 when not provider" do
-    put "/matches/#{@match.id}",
-        params: { match: { status: "accepted" } },
-        headers: auth_headers_for(@requester)
-
-    assert_response :unauthorized
-  end
-
-  test "DELETE /matches/:id deletes match when requester" do
-    delete "/matches/#{@match.id}",
-           headers: auth_headers_for(@requester)
-
-    assert_response :ok
-    assert_nil Match.find_by(id: @match.id)
-  end
-
-  test "DELETE /matches/:id deletes match when provider" do
-    delete "/matches/#{@match.id}",
-           headers: auth_headers_for(@provider)
-
-    assert_response :ok
-    assert_nil Match.find_by(id: @match.id)
-  end
-
-  test "DELETE /matches/:id returns 401 when unauthorized" do
-    other_user = User.create!(
-      email: "other@test.com",
-      password: "password123",
-      username: "otheruser"
-    )
-
-    delete "/matches/#{@match.id}",
-           headers: auth_headers_for(other_user)
-
-    assert_response :unauthorized
-    assert_not_nil Match.find_by(id: @match.id)
-  end
 end

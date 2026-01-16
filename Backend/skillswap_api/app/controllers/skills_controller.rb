@@ -1,11 +1,9 @@
 class SkillsController < ApplicationController
-  skip_before_action :authenticate_user, only: [:index, :show]
+  skip_before_action :authenticate_user!, only: [:index, :show]
   before_action :set_skill, only: [:show, :update, :destroy]
 
   def index
-    skills = Skill
-      .includes(:user)
-      .where(deleted: nil)
+    skills = Skill.includes(:user).where(deleted: nil)
 
     render json: SkillSerializer
       .new(skills, include: [:user])
@@ -62,10 +60,8 @@ class SkillsController < ApplicationController
     head :not_found unless @skill
   end
 
-
   def authorize_skill_owner!
     return if @skill.user_id == current_user.id
-
     render json: { error: "Unauthorized" }, status: :forbidden
   end
 

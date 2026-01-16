@@ -1,5 +1,6 @@
 class MatchesController < ApplicationController
-  before_action :authenticate_user
+  before_action :authenticate_user!
+
   before_action :set_match, only: [:update, :destroy]
 
   # GET /matches

@@ -1,22 +1,12 @@
 class UsersController < ApplicationController
-  def create
-    user = User.new(user_params)
+  # Authentication is enforced globally by ApplicationController
+  # before_action :authenticate_user!
 
-    if user.save
-      render json: UserSerializer.new(user).serializable_hash, status: :created
-    else
-      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
-    end
-  end
-
-  private
-
-  def user_params
-    params.require(:user).permit(
-      :username,
-      :email,
-      :password,
-      :password_confirmation
-    )
+  # GET /me
+  def me
+    render json: UserSerializer
+      .new(current_user)
+      .serializable_hash,
+      status: :ok
   end
 end
