@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchMatches, updateMatchStatus } from "../services/matchesApi";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
@@ -34,6 +34,7 @@ export default function MatchesList({ user }) {
     }
   };
 
+  if (!user) return null;
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
@@ -44,20 +45,22 @@ export default function MatchesList({ user }) {
       <div className="skills-grid">
         {matches.map((match) => (
           <div key={match.id} className="skill-card">
-            <h2>{match.skill.title}</h2>
+            <h2>{match.skill?.title}</h2>
 
             <p>
-              <strong>Requester:</strong> {match.requester.username}
+              <strong>Requester:</strong>{" "}
+              {match.requester?.username}
             </p>
             <p>
-              <strong>Provider:</strong> {match.provider.username}
+              <strong>Provider:</strong>{" "}
+              {match.provider?.username}
             </p>
 
             <span className="skill-type">{match.status}</span>
 
             {/* PENDING → Provider can decide */}
             {match.status === "pending" &&
-              match.provider.id === user.id && (
+              match.provider?.id === user.id && (
                 <div className="skill-card-actions">
                   <button
                     onClick={() =>
@@ -79,7 +82,7 @@ export default function MatchesList({ user }) {
             {/* ACCEPTED → View Details */}
             {match.status === "accepted" && (
               <div className="skill-card-actions">
-                <button onClick={() => setSelectedMatch(match)}>
+                <button className="action-btn details-btn" onClick={() => setSelectedMatch(match)}>
                   View Details
                 </button>
               </div>
@@ -105,10 +108,10 @@ export default function MatchesList({ user }) {
               ×
             </button>
 
-            <h2>{selectedMatch.skill.title}</h2>
+            <h2>{selectedMatch.skill?.title}</h2>
 
             <p className="modal-description">
-              {selectedMatch.skill.description}
+              {selectedMatch.skill?.description}
             </p>
 
             <div className="modal-details">
@@ -117,11 +120,11 @@ export default function MatchesList({ user }) {
               </p>
               <p>
                 <strong>Requester:</strong>{" "}
-                {selectedMatch.requester.username}
+                {selectedMatch.requester?.username}
               </p>
               <p>
                 <strong>Provider:</strong>{" "}
-                {selectedMatch.provider.username}
+                {selectedMatch.provider?.username}
               </p>
             </div>
           </div>

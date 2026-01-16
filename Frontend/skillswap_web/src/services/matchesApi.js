@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const TOKEN_KEY = "authToken";
 
 const normalizeMatch = (item, included = []) => {
@@ -16,25 +16,16 @@ const normalizeMatch = (item, included = []) => {
   return {
     id: Number(item.id),
     ...item.attributes,
-    skill: skill
-      ? { id: Number(skill.id), ...skill.attributes }
-      : null,
-    requester: requester
-      ? { id: Number(requester.id), ...requester.attributes }
-      : null,
-    provider: provider
-      ? { id: Number(provider.id), ...provider.attributes }
-      : null,
+    skill: skill ? { id: Number(skill.id), ...skill.attributes } : null,
+    requester: requester ? { id: Number(requester.id), ...requester.attributes } : null,
+    provider: provider ? { id: Number(provider.id), ...provider.attributes } : null,
   };
 };
 
-/**
- * GET /matches
- */
 export const fetchMatches = async () => {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  const res = await fetch(`${API_URL}/matches`, {
+  const res = await fetch(`${API_BASE_URL}/matches`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -51,13 +42,10 @@ export const fetchMatches = async () => {
   );
 };
 
-/**
- * GET /matches/:id
- */
 export const fetchMatch = async (matchId) => {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  const res = await fetch(`${API_URL}/matches/${matchId}`, {
+  const res = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -72,13 +60,10 @@ export const fetchMatch = async (matchId) => {
   return normalizeMatch(json.data, json.included || []);
 };
 
-/**
- * PATCH /matches/:id
- */
 export const updateMatchStatus = async (matchId, status) => {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  const res = await fetch(`${API_URL}/matches/${matchId}`, {
+  const res = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

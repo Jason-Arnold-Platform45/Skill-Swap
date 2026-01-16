@@ -1,52 +1,56 @@
-import React, { useState } from 'react';
-import '../assets/LoginForm.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../assets/LoginForm.css";
 
-export default function LoginForm({ onLoginSuccess, setCurrentPage }) {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export default function LoginForm({ onLoginSuccess }) {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           auth: {
             email: formData.email,
-            password: formData.password
-          }
-        })
+            password: formData.password,
+          },
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
         onLoginSuccess();
+        navigate("/skills");
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError('Error connecting to server: ' + err.message);
+      setError("Error connecting to server: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -56,6 +60,7 @@ export default function LoginForm({ onLoginSuccess, setCurrentPage }) {
     <div className="login-container">
       <div className="login-card">
         <h1>Welcome Back</h1>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -86,12 +91,13 @@ export default function LoginForm({ onLoginSuccess, setCurrentPage }) {
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" disabled={loading} className="login-btn">
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 
         <p className="signup-link">
-          Don't have an account? <a onClick={() => setCurrentPage("signup")}>Sign up here</a>
+          Don&apos;t have an account?{" "}
+          <a onClick={() => navigate("/signup")}>Sign up here</a>
         </p>
       </div>
     </div>

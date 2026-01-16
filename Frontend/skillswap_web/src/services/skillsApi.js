@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const normalizeSkill = (item, included = []) => {
   const userRel = item.relationships?.user?.data;
@@ -9,14 +9,20 @@ const normalizeSkill = (item, included = []) => {
     )?.attributes || null;
 
   return {
-    id: item.id,
+    id: Number(item.id),
     ...item.attributes,
     user,
   };
 };
 
 export const fetchSkills = async () => {
-  const response = await fetch(`${API_URL}/skills`);
+  const token = localStorage.getItem("authToken");
+
+  const response = await fetch(`${API_BASE_URL}/skills`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch skills");

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchSkills } from "../services/skillsApi";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 const TOKEN_KEY = "authToken";
 
 export default function SkillsList() {
@@ -105,7 +105,7 @@ export default function SkillsList() {
     <div className="skills-list">
       <div className="skills-header">
         <h1>Available Skills</h1>
-        <button onClick={() => setShowCreateModal(true)}>
+        <button className="action-btn details-btn" onClick={() => setShowCreateModal(true)}>
           + Create Skill
         </button>
       </div>
@@ -124,7 +124,7 @@ export default function SkillsList() {
                 </span>
               ) : (
                 <>
-                  <button onClick={() => handleRequestMatch(skill.id)}>
+                  <button className="action-btn details-btn" onClick={() => handleRequestMatch(skill.id)}>
                     {skill.skill_type === "offer"
                       ? "Request Help"
                       : "Offer Help"}

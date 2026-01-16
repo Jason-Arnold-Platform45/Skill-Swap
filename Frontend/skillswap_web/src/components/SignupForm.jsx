@@ -1,67 +1,72 @@
-import React, { useState } from 'react';
-import '../assets/SignupForm.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../assets/SignupForm.css";
 
-export default function SignupForm({ onLoginSuccess, setCurrentPage }) {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export default function SignupForm({ onLoginSuccess }) {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    passwordConfirm: ''
+    username: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (formData.password !== formData.passwordConfirm) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user: {
             username: formData.username,
             email: formData.email,
             password: formData.password,
-            password_confirmation: formData.passwordConfirm
-          }
-        })
+            password_confirmation: formData.passwordConfirm,
+          },
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Signup successful! Redirecting...');
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setFormData({ username: '', email: '', password: '', passwordConfirm: '' });
+        setSuccess("Signup successful! Redirecting...");
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
 
-        setTimeout(() => onLoginSuccess(), 1000);
+        setTimeout(() => {
+          onLoginSuccess();
+          navigate("/skills");
+        }, 1000);
       } else {
-        setError(data.errors?.join(', ') || data.error || 'Signup failed');
+        setError(data.errors?.join(", ") || data.error || "Signup failed");
       }
     } catch (err) {
-      setError('Error connecting to server: ' + err.message);
+      setError("Error connecting to server: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -71,6 +76,7 @@ export default function SignupForm({ onLoginSuccess, setCurrentPage }) {
     <div className="signup-container">
       <div className="signup-card">
         <h1>Create Account</h1>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -128,12 +134,13 @@ export default function SignupForm({ onLoginSuccess, setCurrentPage }) {
           {success && <div className="success-message">{success}</div>}
 
           <button type="submit" disabled={loading} className="signup-btn">
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
         <p className="login-link">
-          Already have an account? <a onClick={() => setCurrentPage("login")}>Log in here</a>
+          Already have an account?{" "}
+          <a onClick={() => navigate("/")}>Log in here</a>
         </p>
       </div>
     </div>
