@@ -2,13 +2,14 @@
 
 SkillSwap is a **Rails API + React frontend** project that allows users to **exchange skills** by creating offers and requests and matching them together.
 
-This repository contains the **backend API**, built with **Ruby on Rails**, **PostgreSQL**, and **JWT authentication**.
+This repository contains the **backend API**, built with **Ruby on Rails**, **PostgreSQL**, and **Devise-based authentication (JWT)**.
 
 ---
 
 ## ✨ Core Features
 
-* User authentication using **JWT**
+* User authentication using **Devise + JWT**
+* Secure signup, login, and logout
 * Create skill **offers** and **requests**
 * Match offers ↔ requests
 * Accept / reject matches
@@ -33,7 +34,8 @@ The platform is based on three core concepts:
 
 * **Ruby on Rails** (API mode)
 * **PostgreSQL**
-* **JWT** for authentication
+* **Devise** for authentication
+* **JWT (devise-jwt)** for stateless API auth
 * **React** (frontend – separate repo)
 
 ---
@@ -45,9 +47,9 @@ The platform is based on three core concepts:
 Stores authentication and identity information.
 
 * id
-* name
 * email (unique)
-* password_digest
+* encrypted_password
+* jti (JWT revocation)
 * created_at / updated_at
 
 ---
@@ -91,19 +93,19 @@ Users participate in matches **through their skills**, not directly.
 
 ---
 
-## 🔐 Authentication (JWT)
+## 🔐 Authentication (Devise + JWT)
 
-Authentication is handled using **JSON Web Tokens**.
+Authentication is handled using **Devise** with **JWT tokens** via `devise-jwt`.
 
 ### Auth Flow
 
 1. User signs up or logs in
-2. Server returns a JWT
-3. Frontend stores the token
+2. Server issues a JWT
+3. Frontend stores the token (memory or secure storage)
 4. Token is sent in the `Authorization` header
-5. Server identifies `current_user` from token
+5. Devise authenticates `current_user`
 
-Protected actions require a valid JWT.
+Tokens are stateless and automatically revoked on logout.
 
 ---
 
@@ -121,8 +123,9 @@ Protected actions require a valid JWT.
 
 ### Authentication
 
-* `POST /signup` – create account
-* `POST /login` – authenticate user
+* `POST /users` – sign up
+* `POST /users/sign_in` – login
+* `DELETE /users/sign_out` – logout
 
 ### Skills
 
@@ -154,9 +157,10 @@ Protected actions require a valid JWT.
 
 ## 🧪 Development Notes
 
-* API is designed to be consumed by a separate React frontend
+* API is designed for a separate React frontend
 * All responses are JSON
-* Business rules are enforced at the application level
+* Authentication handled centrally by Devise
+* Business rules enforced at the model and controller level
 
 ---
 
@@ -174,10 +178,10 @@ Protected actions require a valid JWT.
 
 This project is designed to:
 
-* Teach **real-world Rails backend architecture**
+* Teach **real-world Rails API architecture**
 * Demonstrate clean data modeling
-* Practice JWT authentication
-* Build a portfolio-ready API
+* Use **industry-standard authentication (Devise)**
+* Build a portfolio-ready backend
 
 ---
 
