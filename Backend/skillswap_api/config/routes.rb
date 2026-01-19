@@ -3,12 +3,12 @@ Rails.application.routes.draw do
 
 
   # Auth endpoints
-  post   "/signup", to: "auth#signup"
-  post   "/login",  to: "auth#login"
-  delete "/logout", to: "auth#logout"
-
-  # Current authenticated user
-  get "/me", to: "users#me"
+  resource  :session, only: [:create, :destroy]
+  resources :users,   only: [:create] do
+    collection do
+      get :me
+    end
+  end
 
   # Core resources
   resources :skills,  only: [:index, :show, :create, :update, :destroy]
