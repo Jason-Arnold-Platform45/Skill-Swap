@@ -1,84 +1,48 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const TOKEN_KEY = "authToken";
 
-const normalizeMatch = (item, included = []) => {
-  const findIncluded = (type, id) =>
-    included.find((i) => i.type === type && i.id === id);
-
-  const skillRel = item.relationships?.skill?.data;
-  const requesterRel = item.relationships?.requester?.data;
-  const providerRel = item.relationships?.provider?.data;
-
-  const skill = skillRel ? findIncluded("skill", skillRel.id) : null;
-  const requester = requesterRel ? findIncluded("user", requesterRel.id) : null;
-  const provider = providerRel ? findIncluded("user", providerRel.id) : null;
-
+const authHeaders = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
   return {
-    id: Number(item.id),
-    ...item.attributes,
-    skill: skill ? { id: Number(skill.id), ...skill.attributes } : null,
-    requester: requester ? { id: Number(requester.id), ...requester.attributes } : null,
-    provider: provider ? { id: Number(provider.id), ...provider.attributes } : null,
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
 export const fetchMatches = async () => {
-  const token = localStorage.getItem(TOKEN_KEY);
-
   const res = await fetch(`${API_BASE_URL}/matches`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: authHeaders(),
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = "/login";
+    return [];
+  }
 
   if (!res.ok) {
     throw new Error("Failed to fetch matches");
   }
 
-  const json = await res.json();
-
-  return json.data.map((item) =>
-    normalizeMatch(item, json.included || [])
-  );
-};
-
-export const fetchMatch = async (matchId) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-
-  const res = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch match");
-  }
-
-  const json = await res.json();
-
-  return normalizeMatch(json.data, json.included || []);
+  return await res.json(); // ⬅️ RETURN FULL JSONAPI RESPONSE
 };
 
 export const updateMatchStatus = async (matchId, status) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-
   const res = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      match: { status },
-    }),
+    headers: authHeaders(),
+    body: JSON.stringify({ match: { status } }),
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = "/login";
+    return;
+  }
 
   if (!res.ok) {
     throw new Error("Failed to update match status");
   }
 
-  const json = await res.json();
-
-  return normalizeMatch(json.data, json.included || []);
+  return await res.json();
 };

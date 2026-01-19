@@ -6,10 +6,11 @@ class UsersController < ApplicationController
     user = User.new(signup_params)
 
     if user.save
-      token = JwtService.encode(user)
+      sign_in(user, store: false)
+      # token = JwtService.encode(user)
 
       render json: {
-        token: token,
+        # token: token,
         user: UserSerializer.new(user).serializable_hash
       }, status: :created
     else

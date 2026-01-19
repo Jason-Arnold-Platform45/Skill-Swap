@@ -53,18 +53,26 @@ export default function SignupForm({ onLoginSuccess }) {
 
       const data = await response.json();
 
-      if (response.ok) {
-        setSuccess("Signup successful! Redirecting...");
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        setTimeout(() => {
-          onLoginSuccess();
-          navigate("/skills");
-        }, 1000);
-      } else {
-        setError(data.errors?.join(", ") || data.error || "Signup failed");
+      if (!response.ok) {
+        setError(data.errors?.join(", ") || "Signup failed");
+        return;
       }
+
+      // ✅ Devise JWT from headers
+      const authHeader = response.headers.get("authorization");
+      if (authHeader) {
+        const token = authHeader.replace("Bearer ", "");
+        localStorage.setItem("authToken", token);
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setSuccess("Signup successful! Redirecting...");
+
+      setTimeout(() => {
+        onLoginSuccess();
+        navigate("/skills");
+      }, 1000);
     } catch (err) {
       setError("Error connecting to server: " + err.message);
     } finally {

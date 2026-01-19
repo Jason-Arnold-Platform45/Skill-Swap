@@ -41,14 +41,22 @@ export default function LoginForm({ onLoginSuccess }) {
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        onLoginSuccess();
-        navigate("/skills");
-      } else {
+      if (!response.ok) {
         setError(data.error || "Login failed");
+        return;
       }
+
+      // ✅ Devise JWT comes from headers
+      const authHeader = response.headers.get("authorization");
+      if (authHeader) {
+        const token = authHeader.replace("Bearer ", "");
+        localStorage.setItem("authToken", token);
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      onLoginSuccess();
+      navigate("/skills");
     } catch (err) {
       setError("Error connecting to server: " + err.message);
     } finally {

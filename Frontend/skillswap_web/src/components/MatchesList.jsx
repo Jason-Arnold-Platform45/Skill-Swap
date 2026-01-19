@@ -5,9 +5,15 @@ import ErrorState from "./ErrorState";
 
 export default function MatchesList({ user }) {
   const [matches, setMatches] = useState([]);
+  const [included, setIncluded] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // normalize JSON:API user
+  const normalizedUser = user?.data
+    ? { id: user.data.id, ...user.data.attributes }
+    : user;
 
   useEffect(() => {
     loadMatches();
@@ -16,8 +22,9 @@ export default function MatchesList({ user }) {
   const loadMatches = async () => {
     try {
       setLoading(true);
-      const data = await fetchMatches();
-      setMatches(data);
+      const response = await fetchMatches();
+      setMatches(response?.data || []);
+      setIncluded(response?.included || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -26,15 +33,16 @@ export default function MatchesList({ user }) {
   };
 
   const handleDecision = async (matchId, status) => {
-    try {
-      await updateMatchStatus(matchId, status);
-      loadMatches();
-    } catch (err) {
-      alert(err.message);
-    }
+    await updateMatchStatus(matchId, status);
+    loadMatches();
   };
 
-  if (!user) return null;
+  const findIncluded = (type, id) =>
+    included.find(
+      (item) => item.type === type && String(item.id) === String(id)
+    )?.attributes;
+
+  if (!normalizedUser?.id) return null;
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
@@ -43,52 +51,70 @@ export default function MatchesList({ user }) {
       <h1>Your Matches</h1>
 
       <div className="skills-grid">
-        {matches.map((match) => (
-          <div key={match.id} className="skill-card">
-            <h2>{match.skill?.title}</h2>
+        {matches.map((match) => {
+          const status = match.attributes.status;
 
-            <p>
-              <strong>Requester:</strong>{" "}
-              {match.requester?.username}
-            </p>
-            <p>
-              <strong>Provider:</strong>{" "}
-              {match.provider?.username}
-            </p>
+          const skillId = match.relationships.skill.data.id;
+          const requesterId = match.relationships.requester.data.id;
+          const providerId = match.relationships.provider.data.id;
 
-            <span className="skill-type">{match.status}</span>
+          const skill = findIncluded("skill", skillId);
+          const requester = findIncluded("user", requesterId);
+          const provider = findIncluded("user", providerId);
 
-            {/* PENDING → Provider can decide */}
-            {match.status === "pending" &&
-              match.provider?.id === user.id && (
+          const isProvider =
+            String(providerId) === String(normalizedUser.id);
+
+          return (
+            <div key={match.id} className="skill-card">
+              <h2>{skill?.title}</h2>
+
+              <p>
+                <strong>Requester:</strong> {requester?.username}
+              </p>
+              <p>
+                <strong>Provider:</strong> {provider?.username}
+              </p>
+
+              <span className="skill-type">{status}</span>
+
+              {status === "pending" && isProvider && (
                 <div className="skill-card-actions">
                   <button
-                    onClick={() =>
-                      handleDecision(match.id, "accepted")
-                    }
+                    className="action-btn details-btn"
+                    onClick={() => handleDecision(match.id, "accepted")}
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() =>
-                      handleDecision(match.id, "rejected")
-                    }
+                    className="action-btn details-btn"
+                    onClick={() => handleDecision(match.id, "rejected")}
                   >
                     Reject
                   </button>
                 </div>
               )}
 
-            {/* ACCEPTED → View Details */}
-            {match.status === "accepted" && (
-              <div className="skill-card-actions">
-                <button className="action-btn details-btn" onClick={() => setSelectedMatch(match)}>
-                  View Details
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
+              {status === "accepted" && (
+                <div className="skill-card-actions">
+                  <button
+                    className="action-btn details-btn"
+                    onClick={() =>
+                      setSelectedMatch({
+                        match,
+                        skill,
+                        requester,
+                        provider,
+                      })
+                    }
+                  >
+                    View Details
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* VIEW DETAILS MODAL */}

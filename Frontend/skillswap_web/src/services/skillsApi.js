@@ -1,4 +1,19 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const TOKEN_KEY = "authToken";
+
+const handleUnauthorized = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.href = "/login";
+};
+
+const authHeaders = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
 
 const normalizeSkill = (item, included = []) => {
   const userRel = item.relationships?.user?.data;
@@ -16,13 +31,14 @@ const normalizeSkill = (item, included = []) => {
 };
 
 export const fetchSkills = async () => {
-  const token = localStorage.getItem("authToken");
-
   const response = await fetch(`${API_BASE_URL}/skills`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: authHeaders(),
   });
+
+  if (response.status === 401) {
+    handleUnauthorized();
+    return [];
+  }
 
   if (!response.ok) {
     throw new Error("Failed to fetch skills");

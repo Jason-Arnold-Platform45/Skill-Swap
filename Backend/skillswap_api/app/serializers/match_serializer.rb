@@ -1,8 +1,6 @@
 class MatchSerializer
   include JSONAPI::Serializer
 
-  set_type :match
-
   attributes :status, :created_at
 
   belongs_to :skill

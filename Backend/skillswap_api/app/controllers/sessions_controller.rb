@@ -10,16 +10,17 @@ class SessionsController < ApplicationController
                     status: :unauthorized
     end
 
-    token = JwtService.encode(user)
+    sign_in(user, store: false)
 
     render json: {
-      token: token,
+      # token: token,
       user: UserSerializer.new(user).serializable_hash
     }, status: :ok
   end
 
   # DELETE /logout
   def destroy
+    sign_out(current_user)
     render json: { message: "Logged out successfully" }, status: :ok
   end
 
